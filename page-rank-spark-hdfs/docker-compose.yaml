@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    environment:
+      - CLUSTER_NAME=test
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+    networks:
+      - hadoop-net
+
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    ports:
+      - "9864:9864"
+    environment:
+      - CLUSTER_NAME=test
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    networks:
+      - hadoop-net
+    depends_on:
+      - namenode
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    ports:
+      - "8088:8088"
+    networks:
+      - hadoop-net
+    depends_on:
+      - namenode
+    volumes:
+      - ./hadoop-config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    networks:
+      - hadoop-net
+    depends_on:
+      - resourcemanager
+    volumes:
+      - ./hadoop-config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+
+volumes:
+  namenode-data:
+  datanode-data:
+
+networks:
+  hadoop-net:
