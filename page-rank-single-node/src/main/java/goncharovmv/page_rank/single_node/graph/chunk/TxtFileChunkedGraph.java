@@ -15,13 +15,15 @@ import java.util.Map;
 public final class TxtFileChunkedGraph implements ChunkedGraph {
 
     private final GraphMetadata metadata;
-    private final String filePath;
-    private BufferedReader reader;
+    private final String file;
 
-    public TxtFileChunkedGraph(String filePath) throws IOException {
-        this.filePath = filePath;
-        this.metadata = computeMetadata(filePath);
-        reset();
+    public TxtFileChunkedGraph(String file) {
+        try {
+            this.file = file;
+            this.metadata = computeMetadata(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
@@ -32,9 +34,9 @@ public final class TxtFileChunkedGraph implements ChunkedGraph {
     @Override
     public Map<Integer, List<Integer>> nextAdjListChunk(int chunkSize) {
         Map<Integer, List<Integer>> chunk = new HashMap<>();
-        try {
-            String line;
-            int count = 0;
+        String line;
+        int count = 0;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             while ((line = reader.readLine()) != null && count < chunkSize) {
                 String[] parts = line.trim().split("\\s+");
                 if (parts.length < 2) {
@@ -43,24 +45,17 @@ public final class TxtFileChunkedGraph implements ChunkedGraph {
                 int u = Integer.parseInt(parts[0]);
                 int v = Integer.parseInt(parts[1]);
                 chunk.computeIfAbsent(u, k -> new ArrayList<>()).add(v);
+                chunk.computeIfAbsent(v, k -> new ArrayList<>());
                 count++;
             }
+            if (line == null) {
+                reader.close();
+                return Map.of();
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
         return chunk;
-    }
-
-    @Override
-    public void reset() {
-        if (reader != null) {
-            try {
-                reader.close();
-                reader = new BufferedReader(new FileReader(filePath));
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
     }
 
     private GraphMetadata computeMetadata(String file) throws IOException {

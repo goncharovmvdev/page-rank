@@ -35,7 +35,6 @@ public class ChunkedPageRank implements PageRank<ChunkedGraph> {
                 newRank.put(v, teleport);
             }
 
-            graph.reset();
             Map<Integer, List<Integer>> chunk;
             while ((chunk = graph.nextAdjListChunk(1_000_000)) != null) {
                 for (Map.Entry<Integer, List<Integer>> entry : chunk.entrySet()) {
@@ -52,7 +51,6 @@ public class ChunkedPageRank implements PageRank<ChunkedGraph> {
                 }
             }
 
-            // Compute convergence
             double diff = 0.0;
             for (int v : vertices) {
                 diff += Math.abs(newRank.get(v) - rank.get(v));

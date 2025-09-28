@@ -11,6 +11,4 @@ public interface ChunkedGraph extends Graph {
     GraphMetadata metadata();
 
     Map<Integer, List<Integer>> nextAdjListChunk(int chunkSize);
-
-    void reset();
 }

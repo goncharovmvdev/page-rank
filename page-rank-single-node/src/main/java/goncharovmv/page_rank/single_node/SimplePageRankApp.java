@@ -1,6 +1,8 @@
 package goncharovmv.page_rank.single_node;
 
+import goncharovmv.page_rank.single_node.graph.chunk.TxtFileChunkedGraph;
 import goncharovmv.page_rank.single_node.graph.simple.AdjListSimpleGraphImpl;
+import goncharovmv.page_rank.single_node.pr.chunk.ChunkedPageRank;
 import goncharovmv.page_rank.single_node.pr.concurrent.ConcurrentPageRankCreator;
 import goncharovmv.page_rank.single_node.pr.concurrent.ConcurrentPageRankSettings;
 
@@ -20,6 +22,13 @@ public final class SimplePageRankApp {
         Map<Integer, Double> pageRanks = new TreeMap<>(ConcurrentPageRankCreator
                 .fromConfig(ConcurrentPageRankSettings.DEFAULT)
                 .compute(adjListSimpleGraphImpl));
-        System.out.println(pageRanks);
+        System.out.println("Concurrent " + pageRanks);
+
+        Map<Integer, Double> chunked = new ChunkedPageRank()
+                .compute(new TxtFileChunkedGraph("graph.txt"));
+
+        if(! pageRanks.equals(chunked)) {
+            throw new AssertionError();
+        }
     }
 }
